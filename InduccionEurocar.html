@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capacitación 2026 - CEA EUROCAR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+        
+        :root {
+            --primary: #1e40af;
+            --secondary: #fbbf24;
+            --accent: #0f172a;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: radial-gradient(circle at top left, #f8fafc, #f1f5f9);
+            color: #1e293b;
+        }
+
+        /* Tarjetas de objetivos con mejor legibilidad */
+        .flip-card { perspective: 1000px; height: 240px; }
+        .flip-card-inner {
+            position: relative; width: 100%; height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d; cursor: pointer;
+        }
+        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 4px 15px -3px rgb(0 0 0 / 0.1);
+        }
+        .flip-card-front { background: white; border: 2px solid #f1f5f9; }
+        .flip-card-back { 
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); 
+            color: white; 
+            transform: rotateY(180deg); 
+        }
+
+        #certificate-capture {
+            background: white;
+            padding: 50px;
+            border: 20px solid #0f172a;
+            position: relative;
+            width: 850px;
+            min-height: 600px;
+        }
+        .cert-watermark {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 180px;
+            opacity: 0.04;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-4xl min-h-[750px] flex flex-col bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+        
+        <!-- Header con Progreso -->
+        <div id="course-header" class="hidden absolute top-0 left-0 w-full bg-white/95 backdrop-blur-md border-b p-5 z-20 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div>
+                    <span class="font-bold text-slate-800 text-sm block">CEA EUROCAR</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Capacitación 2026</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="h-2 w-32 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-blue-600 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="progress-text" class="text-xs font-black text-blue-600">0%</span>
+            </div>
+        </div>
+
+        <!-- Pantalla 1: Bienvenida -->
+        <section id="screen-welcome" class="flex-1 flex flex-col items-center justify-center p-10 text-center fade-in">
+            <div class="mb-8">
+                <div class="inline-flex p-5 bg-blue-50 rounded-3xl mb-6">
+                    <svg class="w-14 h-14 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04"></path></svg>
+                </div>
+                <h1 class="text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">Capacitación <span class="text-blue-600 italic">2026</span></h1>
+                <p class="text-slate-500 text-lg max-w-md mx-auto">Actualización integral de la Política y los 5 Objetivos de Control PESV para el periodo vigente.</p>
+            </div>
+
+            <div class="w-full max-w-sm space-y-4">
+                <div class="text-left">
+                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 mb-2 block">Nombre del Colaborador</label>
+                    <input type="text" id="user-name" class="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white outline-none font-bold text-slate-800" placeholder="Ej: Juan Pérez">
+                </div>
+                <button onclick="startCourse()" class="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all uppercase tracking-widest text-sm">COMENZAR INDUCCIÓN</button>
+            </div>
+        </section>
+
+        <!-- Pantalla 2: Política Explicada -->
+        <section id="screen-policy" class="hidden flex-1 p-10 overflow-y-auto fade-in">
+            <div class="max-w-3xl mx-auto pt-10 pb-10">
+                <span class="text-blue-600 font-black text-xs uppercase tracking-widest mb-2 block">Módulo 01</span>
+                <h2 class="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">Política Integrada de Gestión</h2>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-10">
+                    <div class="space-y-6">
+                        <div class="p-6 bg-blue-50 rounded-3xl border border-blue-100">
+                            <h4 class="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.536 14.95a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM16.121 17.243L19 20l-2.757-2.879a1 1 0 10-1.414 1.414zM6.464 13.536a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0z"></path></svg>
+                                Articulación Efectiva
+                            </h4>
+                            <p class="text-sm text-blue-800 leading-relaxed">
+                                El CEA EUROCAR articula las acciones del <strong>PESV y del SG-SST</strong> para garantizar coherencia en programas y controles, consolidando una cultura de prevención.
+                            </p>
+                        </div>
+                        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                Compromiso Directivo
+                            </h4>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Mejora continua de los procesos educativos y organizacionales, asegurando la eficacia del sistema de calidad y la protección de la vida.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center bg-amber-50 p-8 rounded-3xl border border-amber-100">
+                        <h4 class="font-black text-amber-900 uppercase text-xs tracking-widest mb-4">Prohibición Estricta</h4>
+                        <p class="text-sm text-amber-800 leading-relaxed mb-4 font-semibold italic">
+                            "Los instructores y aprendices bajo ninguna circunstancia conducirán o impartirán formación práctica bajo los efectos del alcohol o sustancias psicoactivas."
+                        </p>
+                        <p class="text-[11px] text-amber-700">
+                            Esta política es de obligatorio cumplimiento para todas las partes interesadas y se revisa mínimo cada 3 años.
+                        </p>
+                    </div>
+                </div>
+                
+                <button onclick="changeScreen('screen-objectives', 40)" class="w-full py-5 bg-slate-900 text-white font-black rounded-2xl uppercase tracking-widest text-sm hover:bg-slate-800 transition-all shadow-xl">CONTINUAR A LOS 5 OBJETIVOS</button>
+            </div>
+        </section>
+
+        <!-- Pantalla 3: 5 Objetivos -->
+        <section id="screen-objectives" class="hidden flex-1 p-10 overflow-y-auto fade-in">
+            <div class="max-w-3xl mx-auto pt-10 text-center">
+                <span class="text-blue-600 font-black text-xs uppercase tracking-widest mb-2 block">Módulo 02</span>
+                <h2 class="text-4xl font-extrabold text-slate-900 mb-4">Los 5 Objetivos de Control 2026</h2>
+                <p class="text-slate-500 mb-10">Toca cada tarjeta para conocer la meta específica de este periodo.</p>
+                
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Tarjeta 1 -->
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">01</div>
+                                <h3 class="font-bold text-slate-800">Siniestralidad Vial</h3>
+                            </div>
+                            <div class="flip-card-back p-6">
+                                <h4 class="text-xs font-black uppercase tracking-widest mb-3 opacity-80">Meta de Control</h4>
+                                <p class="text-base font-extrabold leading-snug">Mantener la tasa en CERO (0) fatalidades y lesionados graves.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tarjeta 2 -->
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">02</div>
+                                <h3 class="font-bold text-slate-800">Evaluación de Riesgos</h3>
+                            </div>
+                            <div class="flip-card-back p-6">
+                                <h4 class="text-xs font-black uppercase tracking-widest mb-3 opacity-80">Meta de Control</h4>
+                                <p class="text-base font-extrabold leading-snug">Reducir o mantener los riesgos de valoración ALTA en la matriz.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tarjeta 3 -->
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">03</div>
+                                <h3 class="font-bold text-slate-800">Metas del PESV</h3>
+                            </div>
+                            <div class="flip-card-back p-6">
+                                <h4 class="text-xs font-black uppercase tracking-widest mb-3 opacity-80">Meta de Control</h4>
+                                <p class="text-base font-extrabold leading-snug">Alcanzar al menos el 80% de las metas definidas para el periodo.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tarjeta 4 -->
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">04</div>
+                                <h3 class="font-bold text-slate-800">Plan Anual PESV</h3>
+                            </div>
+                            <div class="flip-card-back p-6">
+                                <h4 class="text-xs font-black uppercase tracking-widest mb-3 opacity-80">Meta de Control</h4>
+                                <p class="text-base font-extrabold leading-snug">Ejecutar al menos el 80% de las actividades programadas en el año.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tarjeta 5 -->
+                    <div class="flip-card sm:col-span-2 lg:col-span-1">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4 text-xl font-bold">05</div>
+                                <h3 class="font-bold text-slate-800">Cultura y Formación</h3>
+                            </div>
+                            <div class="flip-card-back p-6">
+                                <h4 class="text-xs font-black uppercase tracking-widest mb-3 opacity-80">Meta de Control</h4>
+                                <p class="text-base font-extrabold leading-snug">Capacitar al menos al 80% de los colaboradores en seguridad vial.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="changeScreen('screen-quiz', 75)" class="mt-12 w-full py-5 bg-blue-600 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-sm shadow-xl shadow-blue-100">INICIAR VALIDACIÓN</button>
+            </div>
+        </section>
+
+        <!-- Pantalla 4: Quiz -->
+        <section id="screen-quiz" class="hidden flex-1 p-10 overflow-y-auto fade-in">
+            <div class="max-w-xl mx-auto pt-10">
+                <div id="question-container">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Pantalla 5: Certificado -->
+        <section id="screen-certificate" class="hidden flex-1 p-6 overflow-y-auto flex flex-col items-center justify-center fade-in">
+            
+            <div id="certificate-wrapper" class="p-6 bg-slate-50 rounded-[2.5rem] mb-8 shadow-inner border border-slate-100">
+                <div id="certificate-capture">
+                    <div class="cert-watermark">2026</div>
+                    <div class="relative z-10 text-center flex flex-col items-center justify-center h-full">
+                        <div class="mb-6">
+                            <h3 class="text-3xl font-black text-slate-900 tracking-tighter">CEA EUROCAR S.A.S.</h3>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-1">Excelencia en Formación Vial</p>
+                        </div>
+                        
+                        <div class="w-full h-1 bg-slate-900 my-6"></div>
+                        
+                        <p class="text-xs font-black uppercase tracking-[0.5em] text-slate-400 mb-3">Constancia de Inducción</p>
+                        <h2 class="text-5xl font-serif italic text-slate-800 mb-6">Certificado de Idoneidad</h2>
+                        
+                        <p class="text-sm text-slate-500 italic mb-2">Se otorga a:</p>
+                        <div class="border-b-4 border-amber-400 px-12 py-3 mb-8">
+                            <span id="cert-user-name" class="text-4xl font-extrabold text-slate-900 uppercase tracking-tight">NOMBRE APELLIDO</span>
+                        </div>
+                        
+                        <p class="text-sm text-slate-600 max-w-md leading-relaxed mb-12 px-6">
+                            Por haber aprobado satisfactoriamente el microcurso de <strong>POLÍTICA INTEGRADA Y LOS 5 OBJETIVOS DE CONTROL PESV 2026</strong>, demostrando compromiso con la seguridad vial institucional.
+                        </p>
+                        
+                        <div class="grid grid-cols-2 gap-12 w-full mt-8">
+                            <div class="text-center">
+                                <div class="w-32 h-[1px] bg-slate-300 mx-auto mb-3"></div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Comité Seguridad Vial</p>
+                            </div>
+                            <div class="text-center">
+                                <p id="cert-date" class="text-xs font-extrabold text-slate-800 mb-1">--</p>
+                                <div class="w-32 h-[1px] bg-slate-300 mx-auto mb-3"></div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha de Emisión</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+                <button onclick="downloadCertificate()" class="flex-1 py-5 bg-green-600 text-white font-black rounded-2xl shadow-xl shadow-green-100 hover:bg-green-700 transition-all flex items-center justify-center gap-3 text-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    DESCARGAR CERTIFICADO
+                </button>
+            </div>
+            <p id="download-msg" class="text-xs text-slate-400 mt-4 font-bold hidden">Procesando imagen de alta calidad...</p>
+        </section>
+
+    </div>
+
+    <script>
+        let userName = "";
+        let currentStep = 0;
+        const quizData = [
+            {
+                q: "¿Cuál es la meta respecto a los riesgos de valoración ALTA en la matriz?",
+                a: ["Ignorarlos si son pocos", "Reducirlos o mantenerlos bajo control", "Eliminarlos todos en un mes"],
+                correct: 1
+            },
+            {
+                q: "¿Qué porcentaje de ejecución se exige para el Plan Anual de Trabajo?",
+                a: ["Mínimo el 70%", "Mínimo el 80%", "Mínimo el 95%"],
+                correct: 1
+            },
+            {
+                q: "¿Cuál es la meta de siniestralidad vial para el periodo 2026?",
+                a: ["Bajar el 50%", "Cero (0) fatalidades y lesionados graves", "Cero choques simples"],
+                correct: 1
+            },
+            {
+                q: "¿Cómo articula el CEA EUROCAR sus políticas?",
+                a: ["Son independientes", "Articula el PESV con el SG-SST y Calidad", "Solo aplica a instructores prácticos"],
+                correct: 1
+            }
+        ];
+
+        function startCourse() {
+            const input = document.getElementById('user-name');
+            if(input.value.trim().length < 3) {
+                input.classList.add('border-red-500', 'bg-red-50');
+                return;
+            }
+            userName = input.value.trim();
+            changeScreen('screen-policy', 20);
+        }
+
+        function changeScreen(id, progress) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById('course-header').classList.remove('hidden');
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-text').innerText = progress + '%';
+
+            if(id === 'screen-quiz') renderQuiz();
+            if(id === 'screen-certificate') {
+                document.getElementById('cert-user-name').innerText = userName;
+                document.getElementById('course-header').classList.add('hidden');
+                
+                const d = new Date();
+                const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                document.getElementById('cert-date').innerText = `${d.getDate()} de ${meses[d.getMonth()]}, ${d.getFullYear()}`;
+            }
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('question-container');
+            const data = quizData[currentStep];
+            container.innerHTML = `
+                <div class="fade-in">
+                    <span class="text-blue-600 font-black text-xs uppercase tracking-[0.2em] mb-3 block">Evaluación Final</span>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mb-8 leading-tight">${data.q}</h3>
+                    <div class="space-y-4">
+                        ${data.a.map((opt, i) => `
+                            <button onclick="checkAnswer(${i})" class="w-full text-left p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-white transition-all font-bold text-slate-700 shadow-sm">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkAnswer(idx) {
+            if(idx === quizData[currentStep].correct) {
+                currentStep++;
+                if(currentStep < quizData.length) {
+                    let progress = 75 + (currentStep * 5);
+                    updateProgressOnly(progress);
+                    renderQuiz();
+                } else {
+                    changeScreen('screen-certificate', 100);
+                }
+            } else {
+                alert("Respuesta incorrecta. Revisa los contenidos de la política y los objetivos.");
+            }
+        }
+
+        function updateProgressOnly(p) {
+            document.getElementById('progress-bar').style.width = p + '%';
+            document.getElementById('progress-text').innerText = p + '%';
+        }
+
+        async function downloadCertificate() {
+            const btn = document.querySelector('button[onclick="downloadCertificate()"]');
+            const msg = document.getElementById('download-msg');
+            const cert = document.getElementById('certificate-capture');
+            
+            btn.disabled = true;
+            msg.classList.remove('hidden');
+
+            try {
+                const canvas = await html2canvas(cert, {
+                    scale: 2,
+                    backgroundColor: "#ffffff",
+                    logging: false,
+                    useCORS: true
+                });
+                
+                const link = document.createElement('a');
+                link.download = `Certificado_CEA_EUROCAR_2026_${userName.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                msg.innerText = "¡Descarga completada exitosamente!";
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "Error al generar la descarga.";
+            } finally {
+                btn.disabled = false;
+                setTimeout(() => msg.classList.add('hidden'), 3000);
+            }
+        }
+    </script>
+</body>
+</html>
