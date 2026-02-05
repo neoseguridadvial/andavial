@@ -1,0 +1,132 @@
+import base64
+import io
+from fpdf import FPDF
+
+def generate_certificate_base64(name, course_name, completion_date, score, instructor_name):
+    """
+    Genera un certificado de finalización de curso en formato PDF y lo devuelve codificado en Base64.
+
+    Args:
+        name (str): Nombre completo del participante.
+        course_name (str): Nombre del curso completado.
+        completion_date (str): Fecha de emisión del certificado.
+        score (str): Puntuación obtenida en el curso.
+        instructor_name (str): Nombre del instructor/evaluador.
+
+    Returns:
+        str: El contenido del certificado PDF codificado en Base64.
+    """
+    pdf = FPDF(orientation='L', unit='mm', format='A4') # Orientación horizontal (Landscape), unidades en mm, tamaño A4
+    pdf.add_page()
+
+    # Definir colores personalizados
+    blue_anda = (36, 123, 160) # Azul distintivo de ANDA
+    dark_gray = (50, 50, 50)
+    black = (0, 0, 0)
+
+    # --- Borde del certificado ---
+    pdf.set_draw_color(*blue_anda)
+    pdf.set_line_width(1.5)
+    pdf.rect(10, 10, 277, 190) # Borde exterior principal
+
+    pdf.set_draw_color(180, 210, 230) # Azul más claro para un borde interior decorativo
+    pdf.set_line_width(0.5)
+    pdf.rect(12, 12, 273, 186) # Borde interior
+
+    # --- Encabezado / Marca ANDA ---
+    # Texto "ANDA" grande y prominente
+    pdf.set_font('Arial', 'B', 36)
+    pdf.set_text_color(*blue_anda)
+    pdf.set_xy(10, 20) # Posiciona el texto ligeramente por debajo del borde superior
+    pdf.cell(277, 15, 'ANDA', 0, 1, 'C') # Texto "ANDA" centrado
+
+    pdf.set_font('Arial', '', 10)
+    pdf.set_text_color(*dark_gray)
+    pdf.cell(277, 7, 'Porque tu vales en la vía', 0, 1, 'C') # Eslogan
+    pdf.ln(5) # Espacio después del eslogan
+
+    # Título principal del certificado
+    pdf.set_font('Arial', 'B', 24)
+    pdf.set_text_color(*black)
+    pdf.cell(0, 10, 'CERTIFICADO DE FINALIZACIÓN', ln=1, align='C')
+    pdf.ln(10) # Más espacio después del título principal
+
+    # --- Contenido principal ---
+    pdf.set_font('Arial', '', 14)
+    pdf.set_text_color(*dark_gray)
+    pdf.cell(0, 10, 'Se otorga a:', ln=1, align='C')
+    pdf.ln(5)
+
+    pdf.set_font('Arial', 'B', 32)
+    pdf.set_text_color(*blue_anda)
+    pdf.cell(0, 15, name.upper(), ln=1, align='C') # Nombre del participante en mayúsculas para enfatizar
+    pdf.ln(10)
+
+    pdf.set_font('Arial', '', 14)
+    pdf.set_text_color(*dark_gray)
+    pdf.multi_cell(0, 8, f'Por haber completado con éxito el curso "{course_name}", demostrando un alto nivel de competencia y compromiso con la seguridad vial.', align='C')
+    pdf.ln(10)
+
+    pdf.set_font('Arial', 'B', 16)
+    pdf.set_text_color(*black)
+    pdf.cell(0, 10, f'Puntuación General: {score}/100', ln=1, align='C')
+    pdf.ln(5)
+
+    pdf.set_font('Arial', '', 12)
+    pdf.set_text_color(*dark_gray)
+    pdf.cell(0, 10, f'Fecha de Emisión: {completion_date}', ln=1, align='C')
+    pdf.ln(20) # Espacio antes de las firmas
+
+    # --- Firmas ---
+    # Posicionamiento de las firmas: se divide el ancho de la página para centrar los bloques.
+    x_left_signature = pdf.w / 4 - 30 # Posición inicial para el bloque de firma izquierdo
+    x_right_signature = pdf.w * 3 / 4 - 30 # Posición inicial para el bloque de firma derecho
+    signature_width = 60 # Ancho de la línea de firma y del bloque de texto
+
+    # Bloque de firma del Instructor/Evaluador
+    pdf.set_x(x_left_signature)
+    pdf.cell(signature_width, 5, '', 'B', 0, 'C') # Línea de firma
+    pdf.ln(5)
+    pdf.set_x(x_left_signature)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(signature_width, 5, instructor_name, 0, 0, 'C') # Nombre del instructor
+    pdf.ln(5)
+    pdf.set_x(x_left_signature)
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(signature_width, 5, 'Instructor/Evaluador', 0, 0, 'C') # Rol
+
+    # Bloque de firma del Director (ANDA)
+    pdf.set_xy(x_right_signature, pdf.get_y() - 15) # Ajustar la posición Y para alinear con la primera línea
+    pdf.cell(signature_width, 5, '', 'B', 0, 'C') # Línea de firma
+    pdf.ln(5)
+    pdf.set_x(x_right_signature)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(signature_width, 5, 'Departamento de Capacitación', 0, 0, 'C') # Placeholder para Director/Departamento
+    pdf.ln(5)
+    pdf.set_x(x_right_signature)
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(signature_width, 5, 'ANDA', 0, 0, 'C') # Entidad
+
+    # --- Salida del PDF a un objeto BytesIO y codificación a Base64 ---
+    buffer = io.BytesIO()
+    pdf.output(buffer, 'S') # 'S' para devolver el PDF como bytes
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+
+    return base64.b64encode(pdf_bytes).decode('utf-8')
+
+# Datos específicos del certificado
+certificate_data = {
+    'name': 'DEIVIS YEZID RAMIREZ AVILA',
+    'course_name': 'Conducción Segura y Consciente',
+    'completion_date': '03 de Febrero de 2026', # Fecha de la evaluación en el reporte
+    'score': '94',
+    'instructor_name': 'Uriel Villa'
+}
+
+# Generar el certificado en Base64
+base64_certificate = generate_certificate_base64(**certificate_data)
+
+# Imprimir el resultado Base64 (esto es lo que el sistema capturará)
+print(base64_certificate)
+system_objective_fulfilled
